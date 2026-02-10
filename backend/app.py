@@ -2,10 +2,16 @@ from flask import Flask, jsonify, request
 from datetime import datetime
 import csv
 import os
+import joblib
+import pandas as pd
 
 app = Flask(__name__)
 
 DATA_FILE = os.path.join("data", "traffic_log.csv")
+MODEL_FILE = "model.pkl"
+
+# Load trained ML model
+model = joblib.load(MODEL_FILE)
 
 @app.route("/")
 def home():
@@ -22,8 +28,8 @@ def health():
 def receive_traffic():
     data = request.json
 
+    # Log data
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
     row = [
         timestamp,
         data["north"],
@@ -36,9 +42,23 @@ def receive_traffic():
         writer = csv.writer(file)
         writer.writerow(row)
 
+    # Prepare input for ML
+    X = pd.DataFrame([[data["north"], data["south"], data["east"], data["west"]]],
+                     columns=["north", "south", "east", "west"])
+
+    prediction = model.predict(X)[0]
+
+    predicted_traffic = {
+        "north": int(prediction[0]),
+        "south": int(prediction[1]),
+        "east": int(prediction[2]),
+        "west": int(prediction[3])
+    }
+
     return jsonify({
         "status": "logged",
-        "data": row
+        "current_traffic": data,
+        "predicted_next_traffic": predicted_traffic
     })
 
 if __name__ == "__main__":
