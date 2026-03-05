@@ -1,3 +1,6 @@
+let currentPhase = "NS";
+let currentState = "RED";
+
 const canvas = document.getElementById("trafficCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -47,6 +50,9 @@ function updateSignalStatus() {
     fetch("http://127.0.0.1:5000/signal_status")
     .then(response => response.json())
     .then(data => {
+
+          currentPhase = data.current_phase;
+    currentState = data.current_state;
 
         document.getElementById("phase").innerText = data.current_phase;
         document.getElementById("state").innerText = data.current_state;
@@ -128,19 +134,19 @@ function updateLights(data) {
 
 function spawnCars() {
 
-    for (let i = 0; i < northCount; i++) {
+    if (Math.random() < 0.5) {
         cars.push({x:300, y:0, dir:"south"});
     }
 
-    for (let i = 0; i < southCount; i++) {
+    if (Math.random() < 0.5) {
         cars.push({x:290, y:600, dir:"north"});
     }
 
-    for (let i = 0; i < eastCount; i++) {
+    if (Math.random() < 0.4) {
         cars.push({x:600, y:300, dir:"west"});
     }
 
-    for (let i = 0; i < westCount; i++) {
+    if (Math.random() < 0.4) {
         cars.push({x:0, y:290, dir:"east"});
     }
 
@@ -150,12 +156,66 @@ function updateCars() {
 
     cars.forEach(car => {
 
-        if (car.dir === "south") car.y += 1;
-        if (car.dir === "north") car.y -= 1;
-        if (car.dir === "east") car.x += 1;
-        if (car.dir === "west") car.x -= 1;
+        // NORTH → SOUTH movement
+        if (car.dir === "south") {
+
+            if (currentPhase === "NS" && currentState === "GREEN") {
+                car.y += 1;
+            }
+
+            if (car.y < 280) {
+                car.y += 1;
+            }
+
+        }
+
+        // SOUTH → NORTH movement
+        if (car.dir === "north") {
+
+            if (currentPhase === "NS" && currentState === "GREEN") {
+                car.y -= 1;
+            }
+
+            if (car.y > 320) {
+                car.y -= 1;
+            }
+
+        }
+
+        // EAST → WEST movement
+        if (car.dir === "west") {
+
+            if (currentPhase === "EW" && currentState === "GREEN") {
+                car.x -= 1;
+            }
+
+            if (car.x > 320) {
+                car.x -= 1;
+            }
+
+        }
+
+        // WEST → EAST movement
+        if (car.dir === "east") {
+
+            if (currentPhase === "EW" && currentState === "GREEN") {
+                car.x += 1;
+            }
+
+            if (car.x < 280) {
+                car.x += 1;
+            }
+
+        }
 
     });
+     // 🚗 Remove cars that left the screen
+    cars = cars.filter(car =>
+        car.x > -20 &&
+        car.x < 620 &&
+        car.y > -20 &&
+        car.y < 620
+    );
 
 }
 
