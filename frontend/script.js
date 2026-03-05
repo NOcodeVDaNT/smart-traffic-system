@@ -14,16 +14,38 @@ let westCount = 0;
 
 function generateTraffic() {
 
-    northCount += Math.floor(Math.random() * 3);
-    southCount += Math.floor(Math.random() * 3);
-    eastCount  += Math.floor(Math.random() * 2);
-    westCount  += Math.floor(Math.random() * 2);
+    let newNorth = Math.floor(Math.random() * 3);
+    let newSouth = Math.floor(Math.random() * 3);
+    let newEast  = Math.floor(Math.random() * 2);
+    let newWest  = Math.floor(Math.random() * 2);
+
+    northCount += newNorth;
+    southCount += newSouth;
+    eastCount  += newEast;
+    westCount  += newWest;
+
+    // create cars for each new vehicle
+
+    for(let i=0;i<newNorth;i++){
+        cars.push({x:300, y:0, dir:"south"});
+    }
+
+    for(let i=0;i<newSouth;i++){
+        cars.push({x:290, y:600, dir:"north"});
+    }
+
+    for(let i=0;i<newEast;i++){
+        cars.push({x:600, y:300, dir:"west"});
+    }
+
+    for(let i=0;i<newWest;i++){
+        cars.push({x:0, y:290, dir:"east"});
+    }
 
     document.getElementById("count-north").innerText = northCount;
     document.getElementById("count-south").innerText = southCount;
     document.getElementById("count-east").innerText = eastCount;
     document.getElementById("count-west").innerText = westCount;
-
 }
 function sendTrafficData() {
 
@@ -132,25 +154,7 @@ function updateLights(data) {
 
 }
 
-function spawnCars() {
 
-    if (Math.random() < 0.5) {
-        cars.push({x:300, y:0, dir:"south"});
-    }
-
-    if (Math.random() < 0.5) {
-        cars.push({x:290, y:600, dir:"north"});
-    }
-
-    if (Math.random() < 0.4) {
-        cars.push({x:600, y:300, dir:"west"});
-    }
-
-    if (Math.random() < 0.4) {
-        cars.push({x:0, y:290, dir:"east"});
-    }
-
-}
 
 function updateCars() {
 
@@ -231,6 +235,7 @@ function drawCars() {
 }
 
 function animate(){
+    
 
     updateCars();
     drawCars();
@@ -244,4 +249,3 @@ animate();
 setInterval(generateTraffic, 1000);
 setInterval(sendTrafficData, 60000);
 setInterval(updateSignalStatus, 1000);
-setInterval(spawnCars, 2000);
