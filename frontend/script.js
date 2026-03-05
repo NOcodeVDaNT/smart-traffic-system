@@ -25,23 +25,17 @@ function generateTraffic() {
     westCount  += newWest;
 
     // create cars for each new vehicle
+    // NORTH → SOUTH lane
+cars.push({x:285, y:0, dir:"south", color:"blue"});
 
-    for(let i=0;i<newNorth;i++){
-        cars.push({x:300, y:0, dir:"south"});
-    }
+// SOUTH → NORTH lane
+cars.push({x:315, y:600, dir:"north", color:"green"});
 
-    for(let i=0;i<newSouth;i++){
-        cars.push({x:290, y:600, dir:"north"});
-    }
+// EAST → WEST lane
+cars.push({x:600, y:285, dir:"west", color:"orange"});
 
-    for(let i=0;i<newEast;i++){
-        cars.push({x:600, y:300, dir:"west"});
-    }
-
-    for(let i=0;i<newWest;i++){
-        cars.push({x:0, y:290, dir:"east"});
-    }
-
+// WEST → EAST lane
+cars.push({x:0, y:315, dir:"east", color:"red"});
     document.getElementById("count-north").innerText = northCount;
     document.getElementById("count-south").innerText = southCount;
     document.getElementById("count-east").innerText = eastCount;
@@ -160,60 +154,76 @@ function updateCars() {
 
     cars.forEach(car => {
 
-        // NORTH → SOUTH movement
-        if (car.dir === "south") {
+        // NORTH → SOUTH
+      if (car.dir === "south") {
 
-            if (currentPhase === "NS" && currentState === "GREEN") {
-                car.y += 1;
-            }
+    const stopLine = 230;
 
-            if (car.y < 280) {
-                car.y += 1;
-            }
+    if (currentPhase === "NS" && currentState === "GREEN") {
+        car.y += 1;
+    }
+    else if (car.y + 1 < stopLine) {
+        car.y += 1;
+    }
+    else {
+        car.y = stopLine - 1; // clamp exactly behind line
+    }
 
-        }
+}
 
-        // SOUTH → NORTH movement
-        if (car.dir === "north") {
+        // SOUTH → NORTH
+       if (car.dir === "north") {
 
-            if (currentPhase === "NS" && currentState === "GREEN") {
-                car.y -= 1;
-            }
+    const stopLine = 370;
 
-            if (car.y > 320) {
-                car.y -= 1;
-            }
+    if (currentPhase === "NS" && currentState === "GREEN") {
+        car.y -= 1;
+    }
+    else if (car.y - 1 > stopLine) {
+        car.y -= 1;
+    }
+    else {
+        car.y = stopLine + 1;
+    }
 
-        }
+}
+        // EAST → WEST
+       if (car.dir === "west") {
 
-        // EAST → WEST movement
-        if (car.dir === "west") {
+    const stopLine = 370;
 
-            if (currentPhase === "EW" && currentState === "GREEN") {
-                car.x -= 1;
-            }
+    if (currentPhase === "EW" && currentState === "GREEN") {
+        car.x -= 1;
+    }
+    else if (car.x - 1 > stopLine) {
+        car.x -= 1;
+    }
+    else {
+        car.x = stopLine + 1;
+    }
 
-            if (car.x > 320) {
-                car.x -= 1;
-            }
+}
 
-        }
+        // WEST → EAST
+       if (car.dir === "east") {
 
-        // WEST → EAST movement
-        if (car.dir === "east") {
+    const stopLine = 230;
 
-            if (currentPhase === "EW" && currentState === "GREEN") {
-                car.x += 1;
-            }
+    if (currentPhase === "EW" && currentState === "GREEN") {
+        car.x += 1;
+    }
+    else if (car.x + 1 < stopLine) {
+        car.x += 1;
+    }
+    else {
+        car.x = stopLine - 1;
+    }
 
-            if (car.x < 280) {
-                car.x += 1;
-            }
-
-        }
+}
 
     });
-     // 🚗 Remove cars that left the screen
+
+    // remove cars leaving screen
     cars = cars.filter(car =>
         car.x > -20 &&
         car.x < 620 &&
@@ -223,22 +233,65 @@ function updateCars() {
 
 }
 
-function drawCars() {
-
-    ctx.clearRect(0,0,600,600);
+function drawCars(){
 
     cars.forEach(car => {
-        ctx.fillStyle = "blue";
-        ctx.fillRect(car.x, car.y, 4, 8);
+
+        ctx.fillStyle = car.color;
+        ctx.fillRect(car.x, car.y, 8, 12);
+
     });
 
 }
 
-function animate(){
-    
+function drawRoad(){
 
-    updateCars();
-    drawCars();
+    ctx.fillStyle = "#2f2f2f";
+    ctx.fillRect(0,0,600,600);
+
+    ctx.fillStyle = "#444";
+
+    // vertical road
+    ctx.fillRect(240,0,120,600);
+
+    // horizontal road
+    ctx.fillRect(0,240,600,120);
+
+    // lane divider lines
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([12,10]);
+
+    // vertical divider
+    ctx.beginPath();
+    ctx.moveTo(300,0);
+    ctx.lineTo(300,600);
+    ctx.stroke();
+
+    // horizontal divider
+    ctx.beginPath();
+    ctx.moveTo(0,300);
+    ctx.lineTo(600,300);
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = "white";
+
+ctx.fillRect(240,230,120,4); // north stop line
+ctx.fillRect(240,366,120,4); // south stop line
+ctx.fillRect(230,240,4,120); // west stop line
+ctx.fillRect(366,240,4,120); // east stop line
+
+}
+
+function animate(){
+
+    ctx.clearRect(0,0,600,600);
+
+    drawRoad();     // draw intersection
+    updateCars();   // move vehicles
+    drawCars();     // render vehicles
 
     requestAnimationFrame(animate);
 
