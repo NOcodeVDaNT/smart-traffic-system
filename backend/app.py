@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from datetime import datetime
 import csv
 import os
@@ -7,7 +8,10 @@ import pandas as pd
 from signal_logic import calculate_green_time
 from signal_controller import SignalController
 
+
 app = Flask(__name__)
+CORS(app)
+
 
 DATA_FILE = os.path.join("data", "traffic_log.csv")
 MODEL_FILE = "model.pkl"

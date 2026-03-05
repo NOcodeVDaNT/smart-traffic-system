@@ -7,7 +7,7 @@ class SignalController:
         self.remaining_time = 0
         self.green_times = {"phase_NS": 30, "phase_EW": 30}
 
-        self.yellow_time = 3
+        self.yellow_time = 1
         self.all_red_time = 2
 
         self.last_update = time.time()
