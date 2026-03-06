@@ -7,6 +7,7 @@ const ctx = canvas.getContext("2d");
 let cars = [];
 
 console.log("PAGE LOADED at:", new Date().toLocaleTimeString());
+
 let northCount = 0;
 let southCount = 0;
 let eastCount = 0;
@@ -24,23 +25,29 @@ function generateTraffic() {
     eastCount  += newEast;
     westCount  += newWest;
 
-    // create cars for each new vehicle
-    // NORTH → SOUTH lane
-cars.push({x:285, y:0, dir:"south", color:"blue"});
+    // create cars only when vehicles generated
+    for (let i = 0; i < newNorth; i++) {
+        cars.push({x:285, y:0, dir:"south", color:"blue"});
+    }
 
-// SOUTH → NORTH lane
-cars.push({x:315, y:600, dir:"north", color:"green"});
+    for (let i = 0; i < newSouth; i++) {
+        cars.push({x:315, y:600, dir:"north", color:"green"});
+    }
 
-// EAST → WEST lane
-cars.push({x:600, y:285, dir:"west", color:"orange"});
+    for (let i = 0; i < newEast; i++) {
+        cars.push({x:600, y:285, dir:"west", color:"orange"});
+    }
 
-// WEST → EAST lane
-cars.push({x:0, y:315, dir:"east", color:"red"});
+    for (let i = 0; i < newWest; i++) {
+        cars.push({x:0, y:315, dir:"east", color:"red"});
+    }
+
     document.getElementById("count-north").innerText = northCount;
     document.getElementById("count-south").innerText = southCount;
     document.getElementById("count-east").innerText = eastCount;
     document.getElementById("count-west").innerText = westCount;
 }
+
 function sendTrafficData() {
 
     fetch("http://127.0.0.1:5000/traffic", {
@@ -61,14 +68,15 @@ function sendTrafficData() {
     });
 
 }
+
 function updateSignalStatus() {
 
     fetch("http://127.0.0.1:5000/signal_status")
     .then(response => response.json())
     .then(data => {
 
-          currentPhase = data.current_phase;
-    currentState = data.current_state;
+        currentPhase = data.current_phase;
+        currentState = data.current_state;
 
         document.getElementById("phase").innerText = data.current_phase;
         document.getElementById("state").innerText = data.current_state;
@@ -76,29 +84,22 @@ function updateSignalStatus() {
 
         updateLights(data);
 
-          // 🚗 Reduce cars when signal is GREEN
         if (data.current_state === "GREEN") {
 
             if (data.current_phase === "NS") {
-
                 northCount = Math.max(0, northCount - 3);
                 southCount = Math.max(0, southCount - 3);
-
             }
 
             if (data.current_phase === "EW") {
-
                 eastCount = Math.max(0, eastCount - 3);
                 westCount = Math.max(0, westCount - 3);
-
             }
 
-            // update display
             document.getElementById("count-north").innerText = northCount;
             document.getElementById("count-south").innerText = southCount;
             document.getElementById("count-east").innerText = eastCount;
             document.getElementById("count-west").innerText = westCount;
-
         }
 
     });
@@ -112,7 +113,6 @@ function updateLights(data) {
     const east  = document.getElementById("light-east");
     const west  = document.getElementById("light-west");
 
-    // reset all lights
     north.style.backgroundColor = "red";
     south.style.backgroundColor = "red";
     east.style.backgroundColor = "red";
@@ -148,82 +148,84 @@ function updateLights(data) {
 
 }
 
-
-
 function updateCars() {
 
     cars.forEach(car => {
 
-        // NORTH → SOUTH
-      if (car.dir === "south") {
+        let blocked = false;
 
-    const stopLine = 230;
+        cars.forEach(other => {
 
-    if (currentPhase === "NS" && currentState === "GREEN") {
-        car.y += 1;
-    }
-    else if (car.y + 1 < stopLine) {
-        car.y += 1;
-    }
-    else {
-        car.y = stopLine - 1; // clamp exactly behind line
-    }
+            if (car === other) return;
 
-}
+            if (car.dir === "south" && other.dir === "south") {
+                if (Math.abs(car.x - other.x) < 8 &&
+                    other.y > car.y &&
+                    other.y - car.y < 25) {
+                    blocked = true;
+                }
+            }
 
-        // SOUTH → NORTH
-       if (car.dir === "north") {
+            if (car.dir === "north" && other.dir === "north") {
+                if (Math.abs(car.x - other.x) < 8 &&
+                    car.y > other.y &&
+                    car.y - other.y < 25) {
+                    blocked = true;
+                }
+            }
 
-    const stopLine = 370;
+            if (car.dir === "west" && other.dir === "west") {
+                if (Math.abs(car.y - other.y) < 8 &&
+                    car.x > other.x &&
+                    car.x - other.x < 25) {
+                    blocked = true;
+                }
+            }
 
-    if (currentPhase === "NS" && currentState === "GREEN") {
-        car.y -= 1;
-    }
-    else if (car.y - 1 > stopLine) {
-        car.y -= 1;
-    }
-    else {
-        car.y = stopLine + 1;
-    }
+            if (car.dir === "east" && other.dir === "east") {
+                if (Math.abs(car.y - other.y) < 8 &&
+                    other.x > car.x &&
+                    other.x - car.x < 25) {
+                    blocked = true;
+                }
+            }
 
-}
-        // EAST → WEST
-       if (car.dir === "west") {
+        });
 
-    const stopLine = 370;
+        if (blocked) return;
 
-    if (currentPhase === "EW" && currentState === "GREEN") {
-        car.x -= 1;
-    }
-    else if (car.x - 1 > stopLine) {
-        car.x -= 1;
-    }
-    else {
-        car.x = stopLine + 1;
-    }
+        let speed = 2;
 
-}
+        if (car.dir === "south") {
 
-        // WEST → EAST
-       if (car.dir === "east") {
+            if (currentPhase === "NS" && currentState === "GREEN") car.y += speed;
+            else if (car.y < 230) car.y += speed;
 
-    const stopLine = 230;
+        }
 
-    if (currentPhase === "EW" && currentState === "GREEN") {
-        car.x += 1;
-    }
-    else if (car.x + 1 < stopLine) {
-        car.x += 1;
-    }
-    else {
-        car.x = stopLine - 1;
-    }
+        if (car.dir === "north") {
 
-}
+            if (currentPhase === "NS" && currentState === "GREEN") car.y -= speed;
+            else if (car.y > 370) car.y -= speed;
+
+        }
+
+        if (car.dir === "west") {
+
+            if (currentPhase === "EW" && currentState === "GREEN") car.x -= speed;
+            else if (car.x > 370) car.x -= speed;
+
+        }
+
+        if (car.dir === "east") {
+
+            if (currentPhase === "EW" && currentState === "GREEN") car.x += speed;
+            else if (car.x < 230) car.x += speed;
+
+        }
 
     });
 
-    // remove cars leaving screen
     cars = cars.filter(car =>
         car.x > -20 &&
         car.x < 620 &&
@@ -236,10 +238,8 @@ function updateCars() {
 function drawCars(){
 
     cars.forEach(car => {
-
         ctx.fillStyle = car.color;
         ctx.fillRect(car.x, car.y, 8, 12);
-
     });
 
 }
@@ -251,24 +251,18 @@ function drawRoad(){
 
     ctx.fillStyle = "#444";
 
-    // vertical road
     ctx.fillRect(240,0,120,600);
-
-    // horizontal road
     ctx.fillRect(0,240,600,120);
 
-    // lane divider lines
     ctx.strokeStyle = "white";
     ctx.lineWidth = 2;
     ctx.setLineDash([12,10]);
 
-    // vertical divider
     ctx.beginPath();
     ctx.moveTo(300,0);
     ctx.lineTo(300,600);
     ctx.stroke();
 
-    // horizontal divider
     ctx.beginPath();
     ctx.moveTo(0,300);
     ctx.lineTo(600,300);
@@ -278,10 +272,10 @@ function drawRoad(){
 
     ctx.fillStyle = "white";
 
-ctx.fillRect(240,230,120,4); // north stop line
-ctx.fillRect(240,366,120,4); // south stop line
-ctx.fillRect(230,240,4,120); // west stop line
-ctx.fillRect(366,240,4,120); // east stop line
+    ctx.fillRect(240,230,120,4);
+    ctx.fillRect(240,366,120,4);
+    ctx.fillRect(230,240,4,120);
+    ctx.fillRect(366,240,4,120);
 
 }
 
@@ -289,9 +283,9 @@ function animate(){
 
     ctx.clearRect(0,0,600,600);
 
-    drawRoad();     // draw intersection
-    updateCars();   // move vehicles
-    drawCars();     // render vehicles
+    drawRoad();
+    updateCars();
+    drawCars();
 
     requestAnimationFrame(animate);
 
