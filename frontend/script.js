@@ -17,29 +17,29 @@ function generateTraffic() {
 
     let newNorth = Math.floor(Math.random() * 3);
     let newSouth = Math.floor(Math.random() * 3);
-    let newEast  = Math.floor(Math.random() * 2);
-    let newWest  = Math.floor(Math.random() * 2);
+    let newEast = Math.floor(Math.random() * 2);
+    let newWest = Math.floor(Math.random() * 2);
 
     northCount += newNorth;
     southCount += newSouth;
-    eastCount  += newEast;
-    westCount  += newWest;
+    eastCount += newEast;
+    westCount += newWest;
 
     // create cars only when vehicles generated
     for (let i = 0; i < newNorth; i++) {
-        cars.push({x:285, y:0, dir:"south", color:"blue"});
+        cars.push({ x: 285, y: 0, dir: "south", color: "blue" });
     }
 
     for (let i = 0; i < newSouth; i++) {
-        cars.push({x:315, y:600, dir:"north", color:"green"});
+        cars.push({ x: 315, y: 600, dir: "north", color: "green" });
     }
 
     for (let i = 0; i < newEast; i++) {
-        cars.push({x:600, y:285, dir:"west", color:"orange"});
+        cars.push({ x: 600, y: 285, dir: "west", color: "orange" });
     }
 
     for (let i = 0; i < newWest; i++) {
-        cars.push({x:0, y:315, dir:"east", color:"red"});
+        cars.push({ x: 0, y: 315, dir: "east", color: "red" });
     }
 
     document.getElementById("count-north").innerText = northCount;
@@ -62,47 +62,67 @@ function sendTrafficData() {
             west: westCount
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Traffic sent to backend:", data);
-    });
+        .then(response => response.json())
+        .then(data => {
+            console.log("Traffic sent to backend:", data);
+
+            // Save the latest total traffic to localStorage for the Chart page to read
+            if (data.predicted_next_traffic) {
+                const actualTotal = northCount + southCount + eastCount + westCount;
+                const predTotal = data.predicted_next_traffic.north +
+                    data.predicted_next_traffic.south +
+                    data.predicted_next_traffic.east +
+                    data.predicted_next_traffic.west;
+
+                const now = new Date();
+                const timeString = now.getHours().toString().padStart(2, '0') + ':' +
+                    now.getMinutes().toString().padStart(2, '0') + ':' +
+                    now.getSeconds().toString().padStart(2, '0');
+
+                localStorage.setItem('lastTrafficData', JSON.stringify({
+                    time: timeString,
+                    actualTotal: actualTotal,
+                    predictedTotal: predTotal
+                }));
+            }
+        });
 
 }
 
 function updateSignalStatus() {
 
     fetch("http://127.0.0.1:5000/signal_status")
-    .then(response => response.json())
-    .then(data => {
+        .then(response => response.json())
+        .then(data => {
 
-        currentPhase = data.current_phase;
-        currentState = data.current_state;
+            currentPhase = data.current_phase;
+            currentState = data.current_state;
 
-        document.getElementById("phase").innerText = data.current_phase;
-        document.getElementById("state").innerText = data.current_state;
-        document.getElementById("timer").innerText = data.remaining_time;
+            document.getElementById("phase").innerText = data.current_phase;
+            document.getElementById("state").innerText = data.current_state;
+            document.getElementById("timer").innerText = data.remaining_time;
 
-        updateLights(data);
+            updateLights(data);
 
-        if (data.current_state === "GREEN") {
+            if (data.current_state === "GREEN") {
 
-            if (data.current_phase === "NS") {
-                northCount = Math.max(0, northCount - 3);
-                southCount = Math.max(0, southCount - 3);
+                if (data.current_phase === "NS") {
+                    northCount = Math.max(0, northCount - 3);
+                    southCount = Math.max(0, southCount - 3);
+                }
+
+                if (data.current_phase === "EW") {
+                    eastCount = Math.max(0, eastCount - 3);
+                    westCount = Math.max(0, westCount - 3);
+                }
+
+                document.getElementById("count-north").innerText = northCount;
+                document.getElementById("count-south").innerText = southCount;
+                document.getElementById("count-east").innerText = eastCount;
+                document.getElementById("count-west").innerText = westCount;
             }
 
-            if (data.current_phase === "EW") {
-                eastCount = Math.max(0, eastCount - 3);
-                westCount = Math.max(0, westCount - 3);
-            }
-
-            document.getElementById("count-north").innerText = northCount;
-            document.getElementById("count-south").innerText = southCount;
-            document.getElementById("count-east").innerText = eastCount;
-            document.getElementById("count-west").innerText = westCount;
-        }
-
-    });
+        });
 
 }
 
@@ -110,8 +130,8 @@ function updateLights(data) {
 
     const north = document.getElementById("light-north");
     const south = document.getElementById("light-south");
-    const east  = document.getElementById("light-east");
-    const west  = document.getElementById("light-west");
+    const east = document.getElementById("light-east");
+    const west = document.getElementById("light-west");
 
     north.style.backgroundColor = "red";
     south.style.backgroundColor = "red";
@@ -231,73 +251,137 @@ function updateCars() {
 
 }
 
-function drawCars(){
+function drawCars() {
 
     cars.forEach(car => {
+        // Draw car chassis
         ctx.fillStyle = car.color;
-        ctx.fillRect(car.x, car.y, 8, 12);
+
+        // Add a slight shadow under the car
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetY = 2;
+        ctx.shadowOffsetX = 2;
+
+        // Cars are slightly wider and longer
+        ctx.beginPath();
+        ctx.roundRect(car.x, car.y, 12, 20, 3); // using roundRect for smoother car edges
+        ctx.fill();
+
+        // Reset shadow for windows
+        ctx.shadowColor = "transparent";
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.shadowOffsetX = 0;
+
+        // Draw Windshields based on direction
+        ctx.fillStyle = "#a8d8ea"; // light blue glass color
+
+        if (car.dir === "north" || car.dir === "south") {
+            // Front window
+            ctx.fillRect(car.x + 1.5, car.dir === "north" ? car.y + 2 : car.y + 14, 9, 4);
+            // Rear window
+            ctx.fillRect(car.x + 1.5, car.dir === "north" ? car.y + 15 : car.y + 2, 9, 3);
+
+            // Headlights
+            ctx.fillStyle = car.dir === "north" ? "white" : "red"; // Front lights (north) or taillights (south) if moving north/south
+            ctx.fillRect(car.x + 1, car.dir === "north" ? car.y : car.y + 19, 3, 1);
+            ctx.fillRect(car.x + 8, car.dir === "north" ? car.y : car.y + 19, 3, 1);
+        } else {
+            // Because west/east cars are moving sideways, their width becomes their length visually.
+            // But right now the logic in the simulator keeps width 12 and height 20 for all. Let's adjust drawing dynamically.
+
+            // Let's actually draw them sideways!
+            // Clear the 12x20 chassis drawn above, and draw a 20x12 one instead for East/West
+            ctx.clearRect(car.x - 5, car.y - 5, 25, 30); // Clear the previous generic chassis
+
+            // Redraw correct chassis
+            ctx.fillStyle = car.color;
+            ctx.shadowColor = "rgba(0,0,0,0.5)";
+            ctx.shadowBlur = 4;
+            ctx.shadowOffsetY = 2;
+            ctx.shadowOffsetX = 2;
+            ctx.beginPath();
+            ctx.roundRect(car.x, car.y, 20, 12, 3);
+            ctx.fill();
+
+            ctx.shadowColor = "transparent";
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+            ctx.shadowOffsetX = 0;
+
+            ctx.fillStyle = "#a8d8ea";
+            // Windshields
+            ctx.fillRect(car.dir === "west" ? car.x + 2 : car.x + 14, car.y + 1.5, 4, 9); // front
+            ctx.fillRect(car.dir === "west" ? car.x + 15 : car.x + 2, car.y + 1.5, 3, 9); // rear
+
+            // Headlights
+            ctx.fillStyle = car.dir === "west" ? "white" : "red";
+            ctx.fillRect(car.dir === "west" ? car.x : car.x + 19, car.y + 1, 1, 3);
+            ctx.fillRect(car.dir === "west" ? car.x : car.x + 19, car.y + 8, 1, 3);
+        }
     });
 
 }
 
-function drawRoad(){
+function drawRoad() {
 
     // Background (Grass/Dark Area)
     ctx.fillStyle = "#2f2f2f";
-    ctx.fillRect(0,0,600,600);
+    ctx.fillRect(0, 0, 600, 600);
 
     // Main Roads
     ctx.fillStyle = "#444";
-    ctx.fillRect(240,0,120,600); // Vertical road
-    ctx.fillRect(0,240,600,120); // Horizontal road
+    ctx.fillRect(240, 0, 120, 600); // Vertical road
+    ctx.fillRect(0, 240, 600, 120); // Horizontal road
 
     // Left Lane solid lines
     ctx.fillStyle = "#ccc";
-    ctx.fillRect(238,0,2,240); // Top-left
-    ctx.fillRect(360,0,2,240); // Top-right
-    ctx.fillRect(238,360,2,240); // Bottom-left
-    ctx.fillRect(360,360,2,240); // Bottom-right
-    
-    ctx.fillRect(0,238,240,2); // Left-top
-    ctx.fillRect(0,360,240,2); // Left-bottom
-    ctx.fillRect(360,238,240,2); // Right-top
-    ctx.fillRect(360,360,240,2); // Right-bottom
+    ctx.fillRect(238, 0, 2, 240); // Top-left
+    ctx.fillRect(360, 0, 2, 240); // Top-right
+    ctx.fillRect(238, 360, 2, 240); // Bottom-left
+    ctx.fillRect(360, 360, 2, 240); // Bottom-right
+
+    ctx.fillRect(0, 238, 240, 2); // Left-top
+    ctx.fillRect(0, 360, 240, 2); // Left-bottom
+    ctx.fillRect(360, 238, 240, 2); // Right-top
+    ctx.fillRect(360, 360, 240, 2); // Right-bottom
 
     // Center Dashed Lines (Lane Markings)
     ctx.strokeStyle = "white";
     ctx.lineWidth = 2;
-    ctx.setLineDash([12,10]);
-    
+    ctx.setLineDash([12, 10]);
+
     // Vertical center line
     ctx.beginPath();
-    ctx.moveTo(300,0);
-    ctx.lineTo(300,230); // Stop at intersection
+    ctx.moveTo(300, 0);
+    ctx.lineTo(300, 230); // Stop at intersection
     ctx.stroke();
-    
+
     ctx.beginPath();
-    ctx.moveTo(300,370); // Start after intersection
-    ctx.lineTo(300,600);
+    ctx.moveTo(300, 370); // Start after intersection
+    ctx.lineTo(300, 600);
     ctx.stroke();
 
     // Horizontal center line
     ctx.beginPath();
-    ctx.moveTo(0,300);
-    ctx.lineTo(230,300); // Stop at intersection
+    ctx.moveTo(0, 300);
+    ctx.lineTo(230, 300); // Stop at intersection
     ctx.stroke();
-    
+
     ctx.beginPath();
-    ctx.moveTo(370,300); // Start after intersection
-    ctx.lineTo(600,300);
+    ctx.moveTo(370, 300); // Start after intersection
+    ctx.lineTo(600, 300);
     ctx.stroke();
 
     ctx.setLineDash([]); // Reset dash for subsequent drawing
 
     // Stop Lines (Thicker and clearer)
     ctx.fillStyle = "white";
-    ctx.fillRect(240,230,120,6); // Top
-    ctx.fillRect(240,364,120,6); // Bottom
-    ctx.fillRect(230,240,6,120); // Left
-    ctx.fillRect(364,240,6,120); // Right
+    ctx.fillRect(240, 230, 120, 6); // Top
+    ctx.fillRect(240, 364, 120, 6); // Bottom
+    ctx.fillRect(230, 240, 6, 120); // Left
+    ctx.fillRect(364, 240, 6, 120); // Right
 
     // Zebra Crossings
     ctx.fillStyle = "#ddd";
@@ -324,7 +408,7 @@ function drawRoad(){
     ctx.fillRect(373, 215, 12, 12); // Top-right
     ctx.fillRect(215, 373, 12, 12); // Bottom-left
     ctx.fillRect(373, 373, 12, 12); // Bottom-right
-    
+
     // Light Pole stalks
     ctx.fillStyle = "#555";
     ctx.fillRect(225, 220, 15, 2); // Top-left pointing right
@@ -334,9 +418,9 @@ function drawRoad(){
 
 }
 
-function animate(){
+function animate() {
 
-    ctx.clearRect(0,0,600,600);
+    ctx.clearRect(0, 0, 600, 600);
 
     drawRoad();
     updateCars();
@@ -349,5 +433,5 @@ function animate(){
 animate();
 
 setInterval(generateTraffic, 1000);
-setInterval(sendTrafficData, 60000);
+setInterval(sendTrafficData, 60000); // Changed from 60000 to 5000 (5 seconds)
 setInterval(updateSignalStatus, 1000);

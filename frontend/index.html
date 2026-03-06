@@ -1,60 +1,63 @@
 <!DOCTYPE html>
 
 <html>
+
 <head>
     <title>Smart Traffic System</title>
     <link rel="stylesheet" href="style.css">
-    
-   
+
+
 
 </head>
 
 <body>
 
-<h1>AI Smart Traffic Intersection</h1>
+    <h1>AI Smart Traffic Intersection</h1>
+    <a href="chart.html" class="nav-chart-btn">📊 View Traffic Data Chart</a>
 
-<div id="road-container">
-    <canvas id="trafficCanvas" width="600" height="600"></canvas>
-</div>
+    <div id="road-container">
+        <canvas id="trafficCanvas" width="600" height="600"></canvas>
+    </div>
 
 
-<div class="intersection">
+    <div class="intersection">
 
-```
-<div class="road north">
-    <div class="light" id="light-north"></div>
-    <p>North Cars: <span id="count-north">0</span></p>
-</div>
+        ```
+        <div class="road north">
+            <div class="light" id="light-north"></div>
+            <p>North Cars: <span id="count-north">0</span></p>
+        </div>
 
-<div class="road south">
-    <div class="light" id="light-south"></div>
-    <p>South Cars: <span id="count-south">0</span></p>
-</div>
+        <div class="road south">
+            <div class="light" id="light-south"></div>
+            <p>South Cars: <span id="count-south">0</span></p>
+        </div>
 
-<div class="road east">
-    <div class="light" id="light-east"></div>
-    <p>East Cars: <span id="count-east">0</span></p>
-</div>
+        <div class="road east">
+            <div class="light" id="light-east"></div>
+            <p>East Cars: <span id="count-east">0</span></p>
+        </div>
 
-<div class="road west">
-    <div class="light" id="light-west"></div>
-    <p>West Cars: <span id="count-west">0</span></p>
-</div>
-```
+        <div class="road west">
+            <div class="light" id="light-west"></div>
+            <p>West Cars: <span id="count-west">0</span></p>
+        </div>
+        ```
 
-</div>
+    </div>
 
-<h2>Signal Status</h2>
+    <h2>Signal Status</h2>
 
-<p>
-Phase: <span id="phase">-</span> |
-State: <span id="state">-</span> |
-Time Left: <span id="timer">-</span>
-</p>
+    <p>
+        Phase: <span id="phase">-</span> |
+        State: <span id="state">-</span> |
+        Time Left: <span id="timer">-</span>
+    </p>
 
-<script src="script.js"></script>
+    <script src="script.js"></script>
 
 </body>
+
 </html>
 
 <!-- 
