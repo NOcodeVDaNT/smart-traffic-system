@@ -242,36 +242,95 @@ function drawCars(){
 
 function drawRoad(){
 
+    // Background (Grass/Dark Area)
     ctx.fillStyle = "#2f2f2f";
     ctx.fillRect(0,0,600,600);
 
+    // Main Roads
     ctx.fillStyle = "#444";
+    ctx.fillRect(240,0,120,600); // Vertical road
+    ctx.fillRect(0,240,600,120); // Horizontal road
 
-    ctx.fillRect(240,0,120,600);
-    ctx.fillRect(0,240,600,120);
+    // Left Lane solid lines
+    ctx.fillStyle = "#ccc";
+    ctx.fillRect(238,0,2,240); // Top-left
+    ctx.fillRect(360,0,2,240); // Top-right
+    ctx.fillRect(238,360,2,240); // Bottom-left
+    ctx.fillRect(360,360,2,240); // Bottom-right
+    
+    ctx.fillRect(0,238,240,2); // Left-top
+    ctx.fillRect(0,360,240,2); // Left-bottom
+    ctx.fillRect(360,238,240,2); // Right-top
+    ctx.fillRect(360,360,240,2); // Right-bottom
 
+    // Center Dashed Lines (Lane Markings)
     ctx.strokeStyle = "white";
     ctx.lineWidth = 2;
     ctx.setLineDash([12,10]);
-
+    
+    // Vertical center line
     ctx.beginPath();
     ctx.moveTo(300,0);
+    ctx.lineTo(300,230); // Stop at intersection
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(300,370); // Start after intersection
     ctx.lineTo(300,600);
     ctx.stroke();
 
+    // Horizontal center line
     ctx.beginPath();
     ctx.moveTo(0,300);
+    ctx.lineTo(230,300); // Stop at intersection
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(370,300); // Start after intersection
     ctx.lineTo(600,300);
     ctx.stroke();
 
-    ctx.setLineDash([]);
+    ctx.setLineDash([]); // Reset dash for subsequent drawing
 
+    // Stop Lines (Thicker and clearer)
     ctx.fillStyle = "white";
+    ctx.fillRect(240,230,120,6); // Top
+    ctx.fillRect(240,364,120,6); // Bottom
+    ctx.fillRect(230,240,6,120); // Left
+    ctx.fillRect(364,240,6,120); // Right
 
-    ctx.fillRect(240,230,120,4);
-    ctx.fillRect(240,366,120,4);
-    ctx.fillRect(230,240,4,120);
-    ctx.fillRect(366,240,4,120);
+    // Zebra Crossings
+    ctx.fillStyle = "#ddd";
+    // Top zebra crossing
+    for (let i = 245; i < 355; i += 15) {
+        ctx.fillRect(i, 210, 8, 15);
+    }
+    // Bottom zebra crossing
+    for (let i = 245; i < 355; i += 15) {
+        ctx.fillRect(i, 375, 8, 15);
+    }
+    // Left zebra crossing
+    for (let i = 245; i < 355; i += 15) {
+        ctx.fillRect(210, i, 15, 8);
+    }
+    // Right zebra crossing
+    for (let i = 245; i < 355; i += 15) {
+        ctx.fillRect(375, i, 15, 8);
+    }
+
+    // Traffic Light Poles & Base boxes
+    ctx.fillStyle = "#111"; // Pole base
+    ctx.fillRect(215, 215, 12, 12); // Top-left
+    ctx.fillRect(373, 215, 12, 12); // Top-right
+    ctx.fillRect(215, 373, 12, 12); // Bottom-left
+    ctx.fillRect(373, 373, 12, 12); // Bottom-right
+    
+    // Light Pole stalks
+    ctx.fillStyle = "#555";
+    ctx.fillRect(225, 220, 15, 2); // Top-left pointing right
+    ctx.fillRect(360, 220, 15, 2); // Top-right pointing left
+    ctx.fillRect(225, 378, 15, 2); // Bottom-left pointing right
+    ctx.fillRect(360, 378, 15, 2); // Bottom-right pointing left
 
 }
 
