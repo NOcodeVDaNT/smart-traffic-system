@@ -197,31 +197,27 @@ function updateCars() {
         let speed = 2;
 
         if (car.dir === "south") {
-
-            if (currentPhase === "NS" && currentState === "GREEN") car.y += speed;
-            else if (car.y < 230) car.y += speed;
-
+            if ((currentPhase === "NS" && currentState === "GREEN") || car.y + speed <= 230 || car.y > 230) {
+                car.y += speed;
+            }
         }
 
         if (car.dir === "north") {
-
-            if (currentPhase === "NS" && currentState === "GREEN") car.y -= speed;
-            else if (car.y > 370) car.y -= speed;
-
+            if ((currentPhase === "NS" && currentState === "GREEN") || car.y - speed >= 370 || car.y < 370) {
+                car.y -= speed;
+            }
         }
 
         if (car.dir === "west") {
-
-            if (currentPhase === "EW" && currentState === "GREEN") car.x -= speed;
-            else if (car.x > 370) car.x -= speed;
-
+            if ((currentPhase === "EW" && currentState === "GREEN") || car.x - speed >= 370 || car.x < 370) {
+                car.x -= speed;
+            }
         }
 
         if (car.dir === "east") {
-
-            if (currentPhase === "EW" && currentState === "GREEN") car.x += speed;
-            else if (car.x < 230) car.x += speed;
-
+            if ((currentPhase === "EW" && currentState === "GREEN") || car.x + speed <= 230 || car.x > 230) {
+                car.x += speed;
+            }
         }
 
     });
