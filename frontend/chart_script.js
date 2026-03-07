@@ -123,4 +123,4 @@ function updateChart() {
 }
 
 // Check for new data every second
-setInterval(updateChart, 1000);
+setInterval(updateChart, 60000);
