@@ -93,6 +93,58 @@ const trafficChart = new Chart(ctxLine, {
 // EXCEPT when we send a POST to /traffic, it returns `predicted_next_traffic`.
 // Let's modify how we store this. The simplest way without modifying backend is to use localStorage to pass data between index.html and chart.html!
 
+// Define an array to hold all historical errors for long-term tracking
+let historicalErrors = [];
+
+function calculateMetrics() {
+    if (actualTrafficData.length === 0) return;
+
+    let totalAbsoluteError = 0;
+    let totalActualVolume = 0;
+
+    // Calculate sum of absolute errors for current visible points
+    for (let i = 0; i < actualTrafficData.length; i++) {
+        let actual = actualTrafficData[i];
+        let predicted = predictedTrafficData[i];
+        totalAbsoluteError += Math.abs(actual - predicted);
+        totalActualVolume += actual;
+    }
+
+    // Calculate MAE
+    let currentMAE = totalAbsoluteError / actualTrafficData.length;
+    
+    // Optional: Keep a running total if you want it smoothed over time, but for now we'll just track MAE of the visible window
+    // Update MAE display
+    document.getElementById('kpi-mae').innerText = currentMAE.toFixed(2) + " cars";
+
+    // Calculate Accuracy (Avoid division by zero)
+    let accuracy = 100;
+    if (totalActualVolume > 0) {
+        // Average Error %
+        let errorPercentage = (totalAbsoluteError / totalActualVolume) * 100;
+        accuracy = Math.max(0, 100 - errorPercentage);
+    } else if (currentMAE > 0) {
+        // If actual is 0 but there is an error, accuracy drops
+        accuracy = Math.max(0, 100 - (currentMAE * 10)); // Arbitrary penalty when actual is 0
+    }
+
+    // Update Accuracy display
+    let accElement = document.getElementById('kpi-accuracy');
+    accElement.innerText = accuracy.toFixed(1) + "%";
+
+    // Dynamic coloring based on accuracy
+    if (accuracy >= 90) {
+        accElement.style.color = '#00e676'; // Bright Green
+        accElement.style.textShadow = '0 0 15px rgba(0, 230, 118, 0.4)';
+    } else if (accuracy >= 75) {
+        accElement.style.color = '#ffeb3b'; // Yellow
+        accElement.style.textShadow = '0 0 15px rgba(255, 235, 59, 0.4)';
+    } else {
+        accElement.style.color = '#ff3d00'; // Red
+        accElement.style.textShadow = '0 0 15px rgba(255, 61, 0, 0.4)';
+    }
+}
+
 function updateChart() {
     // Read the latest data saved by script.js
     const latestDataStr = localStorage.getItem('lastTrafficData');
@@ -115,6 +167,9 @@ function updateChart() {
                 actualTrafficData.shift();
                 predictedTrafficData.shift();
             }
+
+            // Update Metrics calculations
+            calculateMetrics();
 
             // Update the chart
             trafficChart.update();

@@ -138,3 +138,48 @@ p:last-of-type {
 #state {
     color: #00e676; /* Default bright green */
 }
+
+/* KPI Widgets for Chart */
+.kpi-container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 25px;
+    width: 80%;
+    max-width: 900px;
+}
+
+.kpi-card {
+    background: #2c2c2c;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+    border-color: rgba(79, 172, 254, 0.3);
+}
+
+.kpi-title {
+    font-size: 1rem;
+    color: #a0a0a0;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.kpi-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #4facfe;
+    text-shadow: 0 0 15px rgba(79, 172, 254, 0.4);
+}

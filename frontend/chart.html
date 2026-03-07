@@ -67,6 +67,17 @@
     <h1>Traffic vs ML Predicted Traffic</h1>
     <p class="subtitle">Live analysis of total intersection volume</p>
 
+    <div class="kpi-container">
+        <div class="kpi-card">
+            <div class="kpi-title">Model Accuracy</div>
+            <div class="kpi-value" id="kpi-accuracy">--%</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">Mean Absolute Error (MAE)</div>
+            <div class="kpi-value" id="kpi-mae">--</div>
+        </div>
+    </div>
+
     <div class="chart-container">
         <canvas id="trafficChart"></canvas>
     </div>
